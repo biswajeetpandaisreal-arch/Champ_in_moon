@@ -1,0 +1,52 @@
+<sdf version='1.7'>
+  <world name='moon'>
+    <!-- Reverted to Earth gravity: CHAMP's gait controller is tuned for
+         9.8 m/s2 ground reaction forces and hopped/bounced uncontrollably
+         under real moon gravity (-1.622). Terrain/lighting stay lunar. -->
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>0 0 0</magnetic_field>
+    <atmosphere type='adiabatic'/>
+
+    <physics type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <scene>
+      <ambient>0.15 0.15 0.15 1</ambient>
+      <background>0.02 0.02 0.03 1</background>
+      <shadows>1</shadows>
+    </scene>
+
+    <!-- Harsh, single directional sunlight, no atmospheric scattering -->
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose>0 0 50 0 0 0</pose>
+      <diffuse>1.0 1.0 0.95 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>0.3 0.2 -0.9</direction>
+    </light>
+
+    <!-- Lunar terrain: real heightmap from NASA LRO data (Tranquillitatis Pit) -->
+    <include>
+      <uri>model://lunar_tranquillitatis_pit</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <!-- Framed on the robot's spawn point (-42.4, -42.4), clear of the crater -->
+        <pose>-52.4 -52.4 6 0 0.35 0.78</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>

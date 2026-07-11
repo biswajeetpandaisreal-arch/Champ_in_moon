@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>champ_moon_bringup</name>
+  <version>0.0.1</version>
+  <description>Lunar Gazebo Classic world and bringup for the CHAMP quadruped</description>
+
+  <maintainer email="biswajeetpanda101@gmail.com">biswajeet</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>champ_config</exec_depend>
+  <exec_depend>champ_gazebo</exec_depend>
+  <exec_depend>champ_bringup</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

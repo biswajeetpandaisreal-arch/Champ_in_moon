@@ -1,0 +1,11 @@
+build/
+install/
+log/
+
+# Upstream CHAMP repos - clone separately, see README
+src/champ/
+src/champ_teleop/
+
+*.pyc
+__pycache__/
+.vscode/
