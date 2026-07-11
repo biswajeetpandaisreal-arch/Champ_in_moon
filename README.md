@@ -7,6 +7,10 @@ The terrain is a real NASA LRO heightmap of the **Lunar Tranquillitatis Pit**
 (from Gazebo's Fuel asset library, OpenRobotics), dropped into a custom world alongside CHAMP's
 existing gait controller and LiDAR-based SLAM stack.
 
+![CHAMP walking on the lunar terrain, RViz showing live LiDAR scan](media/demo.gif)
+
+![Screenshot of Gazebo and RViz side by side](media/screenshot.png)
+
 ## What's here
 
 This repo contains one package: `champ_moon_bringup`, which layers the lunar world and bringup
