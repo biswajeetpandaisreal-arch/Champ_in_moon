@@ -11,6 +11,11 @@ existing gait controller and LiDAR-based SLAM stack.
 
 ![Screenshot of Gazebo and RViz side by side](media/screenshot.png)
 
+CHAMP also carries a front-facing RGB-D camera, so you can see the terrain from its own point of
+view while it walks:
+
+![First-person view from CHAMP's onboard camera walking across the lunar terrain](media/champ_eyes.gif)
+
 ## What's here
 
 This repo contains one package: `champ_moon_bringup`, which layers the lunar world and bringup
