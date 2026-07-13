@@ -22,4 +22,11 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/maps)
   install(DIRECTORY maps/ DESTINATION share/${PROJECT_NAME}/maps)
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
+  install(PROGRAMS
+    scripts/breadcrumb_node.py
+    DESTINATION lib/${PROJECT_NAME}
+  )
+endif()
+
 ament_package()

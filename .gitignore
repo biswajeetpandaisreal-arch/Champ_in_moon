@@ -8,4 +8,3 @@ src/champ_teleop/
 
 *.pyc
 __pycache__/
-.vscode/

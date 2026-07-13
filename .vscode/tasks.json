@@ -1,0 +1,71 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "0. Kill All Champ Processes",
+            "type": "shell",
+            "command": "pkill -9 -f 'gzserver|gzclient|quadruped_controller_node|state_estimation_node|robot_state_publisher|component_container_isolated|rviz2|breadcrumb_node.py' || true; sleep 1; echo 'Cleaned up - safe to relaunch.'",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "1. Launch Gazebo",
+            "type": "shell",
+            "command": "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch champ_moon_bringup moon_gazebo.launch.py rviz:=false",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "2. Launch Nav2 + RViz",
+            "type": "shell",
+            "command": "sleep 15 && source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch champ_moon_bringup moon_navigate.launch.py",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "3. Launch Breadcrumb Node",
+            "type": "shell",
+            "command": "sleep 25 && source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 run champ_moon_bringup breadcrumb_node.py",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Launch Full Stack (Gazebo + Nav2 + Breadcrumb)",
+            "dependsOn": [
+                "1. Launch Gazebo",
+                "2. Launch Nav2 + RViz",
+                "3. Launch Breadcrumb Node"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": []
+        }
+    ]
+}

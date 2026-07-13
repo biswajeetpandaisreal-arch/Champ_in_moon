@@ -32,8 +32,13 @@ custom Nav2 controller plugin purpose-built for CHAMP's gait.
   1.5s for stability on this terrain
 - `config/nav2_params.yaml` - Nav2 stack config, using the custom controller below for path
   following
-- `rviz/nav_view.rviz` - RViz config for viewing the robot, LiDAR scan, and map
+- `rviz/nav_view.rviz` - RViz config for viewing the robot, LiDAR scan, map, breadcrumb trail, and
+  the onboard camera feed
 - `maps/moon_map.pgm` / `.yaml` - a saved SLAM map from manual teleop exploration (~27.6m x 25m)
+- `scripts/breadcrumb_node.py` - records the robot's actual traveled path (from `/amcl_pose`) as a
+  trail of waypoints, and exposes a `/return_to_start` service that reverses the trail and feeds it
+  to Nav2's `FollowWaypoints` action - a "retrace exactly where I've been" behavior, distinct from
+  just re-planning a fresh route back
 
 **`champ_nav2_controller`:** a custom `nav2_core::Controller` plugin, written because Nav2's stock
 `RegulatedPurePursuitController` assumes wheeled-robot-like velocity tracking that CHAMP's legged
@@ -54,14 +59,17 @@ Requires ROS 2 Humble and Gazebo Classic 11.
 
 ```bash
 mkdir -p champ_moon_ws/src && cd champ_moon_ws/src
-git clone https://github.com/biswajeetpandaisreal-arch/Champ_in_moon.git champ_moon_bringup
+git clone https://github.com/biswajeetpandaisreal-arch/Champ_in_moon.git
 git clone https://github.com/chvmp/champ.git
 git clone https://github.com/chvmp/champ_teleop.git
 cd ..
 rosdep install --from-paths src --ignore-src -r -y
-colcon build
+colcon build --symlink-install
 source install/setup.bash
 ```
+
+(the cloned repo contains both `champ_moon_bringup` and `champ_nav2_controller` directly under
+`src/` - colcon discovers packages recursively, so no special layout is needed)
 
 ## Running
 
@@ -73,6 +81,21 @@ ros2 launch champ_moon_bringup moon_gazebo.launch.py rviz:=true
 
 Drive it around with teleop, and run `slam_toolbox` to map the terrain (see `config/slam.yaml`).
 The included `maps/moon_map.*` is a map already produced this way.
+
+To navigate autonomously on the saved map instead:
+
+```bash
+ros2 launch champ_moon_bringup moon_navigate.launch.py
+```
+
+then set a goal in RViz with the "Nav2 Goal" tool. Add `ros2 run champ_moon_bringup
+breadcrumb_node.py` in another terminal to record the trail, and `ros2 service call
+/return_to_start std_srvs/srv/Trigger` to retrace it back.
+
+**One-click version:** open the repo in VS Code (`code .`) and run the **"Launch Full Stack"**
+task (`Ctrl+Shift+P` -> "Tasks: Run Task") - launches Gazebo, Nav2+RViz, and the breadcrumb node
+together in separate terminal panels with the right startup delays baked in. "0. Kill All Champ
+Processes" cleanly tears everything down again.
 
 ## Notes / known issues
 
@@ -88,9 +111,12 @@ The included `maps/moon_map.*` is a map already produced this way.
 
 ## Roadmap
 
-- [ ] Nav2 on the saved map for autonomous navigation
-- [ ] VS Code task automation to launch Gazebo/teleop/SLAM/RViz together
+- [x] Nav2 on the saved map for autonomous navigation - with a custom controller purpose-built for
+  CHAMP's gait, see `champ_nav2_controller` above
+- [x] VS Code task automation to launch Gazebo/Nav2/breadcrumb node together - see `.vscode/tasks.json`
+- [x] Breadcrumb trail recording + retrace-to-start, via `scripts/breadcrumb_node.py`
 - [ ] Autonomous frontier exploration for mapping
+- [ ] Compare global planner algorithms (A*, Dijkstra, and a custom RRT plugin)
 
 ## Credits
 
