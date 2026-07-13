@@ -1,0 +1,8 @@
+<library path="champ_nav2_controller">
+  <class name="champ_nav2_controller::ChampController" type="champ_nav2_controller::ChampController" base_class_type="nav2_core::Controller">
+    <description>
+      Pure-pursuit controller with rotate-to-heading and live velocity
+      calibration, purpose-built for CHAMP's quadruped gait.
+    </description>
+  </class>
+</library>

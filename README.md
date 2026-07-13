@@ -18,17 +18,35 @@ view while it walks:
 
 ## What's here
 
-This repo contains one package: `champ_moon_bringup`, which layers the lunar world and bringup
-config on top of the upstream CHAMP packages (not included here, see setup below).
+Two packages: `champ_moon_bringup`, which layers the lunar world and bringup config on top of the
+upstream CHAMP packages (not included here, see setup below), and `champ_nav2_controller`, a
+custom Nav2 controller plugin purpose-built for CHAMP's gait.
 
+**`champ_moon_bringup`:**
 - `worlds/moon.world` - the lunar terrain + CHAMP robot world
 - `models/lunar_tranquillitatis_pit/` - the downloaded heightmap terrain model
 - `launch/moon_gazebo.launch.py` - custom launch file; adds a `world_init_z` spawn-height
   override that CHAMP's own launch wrapper doesn't expose
+- `launch/moon_navigate.launch.py` - launches Nav2 (`nav2_bringup`) + RViz on the saved map
 - `config/slam.yaml` - CHAMP's slam_toolbox config, with `transform_timeout` raised from 0.2s to
   1.5s for stability on this terrain
+- `config/nav2_params.yaml` - Nav2 stack config, using the custom controller below for path
+  following
 - `rviz/nav_view.rviz` - RViz config for viewing the robot, LiDAR scan, and map
 - `maps/moon_map.pgm` / `.yaml` - a saved SLAM map from manual teleop exploration (~27.6m x 25m)
+
+**`champ_nav2_controller`:** a custom `nav2_core::Controller` plugin, written because Nav2's stock
+`RegulatedPurePursuitController` assumes wheeled-robot-like velocity tracking that CHAMP's legged
+gait can't deliver - a direct `cmd_vel`-vs-`odom` measurement showed the gait only achieves ~41% of
+a commanded angular velocity when rotating in place. This controller:
+- follows the path with pure-pursuit + a rotate-to-heading gate, using speed limits that reflect
+  what the gait can actually do
+- continuously compares what it *commanded* last cycle against what Nav2 reports the robot
+  *actually* achieved (from odometry) every control cycle, and maintains a live self-correcting
+  scale factor instead of trusting a fixed assumption
+
+On the same test goal, the stock (tuned) controller racked up 10 recovery behaviors and ultimately
+failed to reach the goal; this controller reached it in 1 recovery and ~146s.
 
 ## Setup
 
