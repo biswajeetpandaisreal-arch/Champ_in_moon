@@ -59,6 +59,11 @@ protected:
   // exponential-moving-average correction factor.
   void updateCalibration(const geometry_msgs::msg::Twist & actual_velocity);
 
+  // Arc length remaining from the robot's current closest point on the
+  // path (set by the last findLookaheadPoint call) to the path's end.
+  // Used to slow down approaching the goal.
+  double remainingPathDistance() const;
+
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
@@ -67,6 +72,7 @@ protected:
   rclcpp::Clock::SharedPtr clock_;
 
   nav_msgs::msg::Path global_plan_;
+  size_t last_closest_idx_ = 0;
 
   // --- parameters (declared in configure(), see .cpp for defaults/meaning) ---
   double desired_linear_velocity_;

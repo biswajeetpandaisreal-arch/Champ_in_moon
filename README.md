@@ -68,8 +68,8 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-(the cloned repo contains both `champ_moon_bringup` and `champ_nav2_controller` directly under
-`src/` - colcon discovers packages recursively, so no special layout is needed)
+The cloned repo contains both `champ_moon_bringup` and `champ_nav2_controller` directly under
+`src/` - colcon discovers packages recursively, so no special layout is needed.
 
 ## Running
 

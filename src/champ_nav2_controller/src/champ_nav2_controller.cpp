@@ -130,6 +130,8 @@ geometry_msgs::msg::PoseStamped ChampController::findLookaheadPoint(
     }
   }
 
+  last_closest_idx_ = closest_idx;
+
   // Walk forward from the closest point accumulating arc length until we
   // reach lookahead_distance_. If the path ends first, just target the
   // final pose - this naturally makes the robot aim at the goal itself
@@ -147,6 +149,18 @@ geometry_msgs::msg::PoseStamped ChampController::findLookaheadPoint(
   }
 
   return poses[target_idx];
+}
+
+double ChampController::remainingPathDistance() const
+{
+  const auto & poses = global_plan_.poses;
+  double remaining = 0.0;
+  for (size_t i = last_closest_idx_; i + 1 < poses.size(); ++i) {
+    remaining += std::hypot(
+      poses[i + 1].pose.position.x - poses[i].pose.position.x,
+      poses[i + 1].pose.position.y - poses[i].pose.position.y);
+  }
+  return remaining;
 }
 
 void ChampController::updateCalibration(const geometry_msgs::msg::Twist & actual_velocity)
@@ -233,14 +247,10 @@ geometry_msgs::msg::TwistStamped ChampController::computeVelocityCommands(
     const double curvature = (2.0 * ly) / (L * L);
 
     // Slow down approaching the end of the path so we don't overshoot the
-    // goal the way a constant-speed controller would.
-    double remaining = 0.0;
-    const auto & poses = global_plan_.poses;
-    for (size_t i = 0; i + 1 < poses.size(); ++i) {
-      remaining += std::hypot(
-        poses[i + 1].pose.position.x - poses[i].pose.position.x,
-        poses[i + 1].pose.position.y - poses[i].pose.position.y);
-    }
+    // goal the way a constant-speed controller would. Uses distance
+    // remaining from the robot's current position (set by
+    // findLookaheadPoint above), not the whole original path length.
+    const double remaining = remainingPathDistance();
     const double speed_scale = std::clamp(remaining / deceleration_distance_, 0.0, 1.0);
     desired_linear = std::max(
       desired_linear_velocity_ * speed_scale, std::min(min_linear_velocity_, desired_linear_velocity_));

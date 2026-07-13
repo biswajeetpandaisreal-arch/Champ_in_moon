@@ -44,7 +44,6 @@ amcl:
       y: 0.0
       yaw: 0.0
 
-
 amcl_map_client:
   ros__parameters:
     use_sim_time: True
@@ -172,7 +171,10 @@ local_costmap:
       height: 3
       resolution: 0.05
       robot_radius: 0.22
-      plugins: ["voxel2d_layer", "voxel3d_layer", "inflation_layer"]
+      # Only voxel2d_layer + inflation_layer - CHAMP has a single 2D planar
+      # LiDAR (Hokuyo, publishing /scan), no 3D-sensing camera/LiDAR in this
+      # project, so there's nothing to feed a voxel3d_layer.
+      plugins: ["voxel2d_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -186,46 +188,13 @@ local_costmap:
         z_voxels: 16
         max_obstacle_height: 2.0
         mark_threshold: 0
-        observation_sources: scan base_scan
+        observation_sources: scan
         scan:
           topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-        base_scan:
-          topic: /base/scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-      voxel3d_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: False
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
-        mark_threshold: 1
-        observation_sources: realsense zed
-        min_obstacle_height: 0.00
-        max_obstacle_height: 2.0 
-        realsense:
-          topic: /camera/depth/color/points
-          raytrace_min_range: 0.5
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0 
-          clearing: True
-          marking: True
-          data_type: "PointCloud2"
-        zed:
-          topic: /zed/point_cloud/cloud_registered
-          raytrace_min_range: 0.5
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0 
-          clearing: True
-          marking: True
-          data_type: "PointCloud2"
       static_layer:
         map_subscribe_transient_local: True
       always_send_full_costmap: True
@@ -247,50 +216,19 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
-      plugins: ["static_layer", "voxel2d_layer", "voxel3d_layer", "inflation_layer"]
+      # Only static_layer + voxel2d_layer + inflation_layer - see
+      # local_costmap above for why there's no voxel3d_layer here.
+      plugins: ["static_layer", "voxel2d_layer", "inflation_layer"]
       voxel2d_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan base_scan
+        observation_sources: scan
         scan:
           topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-        base_scan:
-          topic: /base/scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-      voxel3d_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: False
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
-        mark_threshold: 1
-        observation_sources: realsense zed
-        min_obstacle_height: 0.00
-        max_obstacle_height: 2.0 
-        realsense:
-          topic: /camera/depth/color/points
-          raytrace_min_range: 0.5
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0 
-          clearing: True
-          marking: True
-          data_type: "PointCloud2"
-        zed:
-          topic: /zed/point_cloud/cloud_registered
-          raytrace_min_range: 0.5
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0 
-          clearing: True
-          marking: True
-          data_type: "PointCloud2"
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -334,26 +272,36 @@ planner_server_rclcpp_node:
   ros__parameters:
     use_sim_time: True
 
-recoveries_server:
+# This was "recoveries_server" (Foxy/Galactic-era name) in the config this
+# was adapted from - Humble renamed the node to behavior_server and its
+# plugin types to nav2_behaviors/*, so that old block was silently ignored
+# the whole time and behavior_server ran on nav2_bringup's own unmodified
+# defaults. Fixed here, and max_rotational_vel lowered to match the same
+# measured real turning speed (~0.31 rad/s) as champ_nav2_controller, so
+# recovery behaviors don't inherit the same wheeled-robot-speed assumption
+# that FollowPath was fixed for.
+behavior_server:
   ros__parameters:
     costmap_topic: local_costmap/costmap_raw
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
-    recovery_plugins: ["spin", "backup", "wait"]
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
     spin:
-      plugin: "nav2_recoveries/Spin"
+      plugin: "nav2_behaviors/Spin"
     backup:
-      plugin: "nav2_recoveries/BackUp"
+      plugin: "nav2_behaviors/BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors/DriveOnHeading"
     wait:
-      plugin: "nav2_recoveries/Wait"
+      plugin: "nav2_behaviors/Wait"
     global_frame: odom
     robot_base_frame: base_link
     transform_timeout: 0.1
     use_sim_time: true
     simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
-    min_rotational_vel: 0.4
-    rotational_acc_lim: 3.2
+    max_rotational_vel: 0.3
+    min_rotational_vel: 0.1
+    rotational_acc_lim: 1.5
 
 robot_state_publisher:
   ros__parameters:
@@ -363,7 +311,7 @@ waypoint_follower:
   ros__parameters:
     loop_rate: 20
     stop_on_failure: false
-    waypoint_task_executor_plugin: "wait_at_waypoint"   
+    waypoint_task_executor_plugin: "wait_at_waypoint"
     wait_at_waypoint:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
