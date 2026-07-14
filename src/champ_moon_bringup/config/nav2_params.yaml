@@ -216,19 +216,18 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
-      # Only static_layer + voxel2d_layer + inflation_layer - see
-      # local_costmap above for why there's no voxel3d_layer here.
-      plugins: ["static_layer", "voxel2d_layer", "inflation_layer"]
-      voxel2d_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
+      # No live obstacle layer here on purpose. Diagnosed via direct
+      # costmap-vs-static-map comparison: this global costmap accumulates
+      # forever (unlike the local costmap's self-clearing rolling window),
+      # so any bad LiDAR readings (from TF jitter during erratic motion,
+      # especially recovery maneuvers) get marked and never cleared,
+      # eventually poisoning enough of the map that GridBased can't find
+      # any valid path - a self-reinforcing trap (failed plan -> recovery
+      # -> more erratic motion -> more bad marks -> more failures). Global
+      # planning now always uses the known, clean static map; the local
+      # costmap (which does self-clear) is what should handle live
+      # obstacle avoidance during path following.
+      plugins: ["static_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
