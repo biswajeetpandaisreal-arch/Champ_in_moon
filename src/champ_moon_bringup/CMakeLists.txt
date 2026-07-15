@@ -22,6 +22,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/maps)
   install(DIRECTORY maps/ DESTINATION share/${PROJECT_NAME}/maps)
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/behavior_trees)
+  install(DIRECTORY behavior_trees/ DESTINATION share/${PROJECT_NAME}/behavior_trees)
+endif()
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
   install(PROGRAMS
     scripts/breadcrumb_node.py
