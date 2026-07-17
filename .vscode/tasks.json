@@ -4,7 +4,7 @@
         {
             "label": "0. Kill All Champ Processes",
             "type": "shell",
-            "command": "pkill -9 -f 'gzserver|gzclient|quadruped_controller_node|state_estimation_node|robot_state_publisher|component_container_isolated|rviz2|breadcrumb_node.py' || true; sleep 1; echo 'Cleaned up - safe to relaunch.'",
+            "command": "pkill -9 -f 'gzserver|gzclient|quadruped_controller_node|state_estimation_node|robot_state_publisher|component_container_isolated|rviz2|breadcrumb_node.py|contact_sensor|footprint_to_odom_ekf|ekf_node' || true; sleep 1; echo 'Cleaned up - safe to relaunch.'",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
